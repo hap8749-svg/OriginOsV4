@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperOS Emulator - Settings Only</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #111;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .phone-frame {
+      position: relative;
+      width: 380px;
+      height: 780px;
+      background: #000;
+      border-radius: 45px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      overflow: hidden;
+      border: 8px solid #111;
+    }
+
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 30px;
+      background: #000;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+    .camera {
+      width: 10px;
+      height: 10px;
+      background: #222;
+      border-radius: 50%;
+      margin: 0 6px;
+    }
+    .speaker {
+      width: 60px;
+      height: 6px;
+      background: #222;
+      border-radius: 3px;
+    }
+
+    .screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: url("https://i.ibb.co/jznLbfz/hyperos-wallpaper.jpg") center/cover no-repeat;
+      overflow: hidden;
+      transition: filter 0.3s;
+    }
+    .screen.grayscale {
+      filter: grayscale(100%);
+    }
+
+    .status-bar {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      width: 100%;
+      height: 24px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: #fff;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    .icons {
+      position: absolute;
+      top: 100px;
+      left: 0;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .icon img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+    }
+    .icon span {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #fff;
+      text-align: center;
+    }
+    .icon:active {
+      transform: scale(0.9);
+    }
+
+    .app-window {
+      position: fixed;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 15px 25px rgba(0,0,0,0.25);
+      overflow: hidden;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .app-window.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .settings {
+      padding: 20px;
+      font-size: 14px;
+      color: #222;
+    }
+    .settings h2 {
+      margin-top: 0;
+    }
+    .settings label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    .settings select {
+      width: 100%;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="notch">
+      <div class="camera"></div>
+      <div class="speaker"></div>
+      <div class="camera"></div>
+    </div>
+    <div class="screen" id="screen">
+      <div class="status-bar">
+        <div>12:45</div>
+        <div>🔋📶</div>
+      </div>
+      <div class="icons">
+        <!-- tất cả app là Cài đặt -->
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+        <div class="icon"><img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"><span>Settings</span></div>
+      </div>
+      <div class="app-window" id="appWindow"></div>
+    </div>
+  </div>
+
+  <script>
+    const icons = document.querySelectorAll('.icon');
+    const appWindow = document.getElementById('appWindow');
+    const screen = document.getElementById('screen');
+    let lastIconRect = null;
+    let animationSpeed = 200; // mặc định nhanh
+
+    function getSettingsContent() {
+      return `
+        <div class="settings">
+          <h2>⚙️ Settings</h2>
+          <label>Animation Speed</label>
+          <select id="speedSelect">
+            <option value="400">Slow</option>
+            <option value="250">Normal</option>
+            <option value="120">Fast</option>
+          </select>
+
+          <label>Color Mode</label>
+          <select id="colorSelect">
+            <option value="normal">Normal</option>
+            <option value="grayscale">Black & White</option>
+          </select>
+          <p style="margin-top:12px;color:#666;font-size:13px;">Click outside to close</p>
+        </div>
+      `;
+    }
+
+    function openApp(icon) {
+      lastIconRect = icon.getBoundingClientRect();
+      appWindow.classList.add('open');
+      appWindow.style.transition = 'none';
+      appWindow.style.opacity = '1';
+
+      appWindow.innerHTML = getSettingsContent();
+
+      const phoneRect = document.querySelector('.phone-frame').getBoundingClientRect();
+
+      appWindow.style.width = lastIconRect.width + 'px';
+      appWindow.style.height = lastIconRect.height + 'px';
+      appWindow.style.top = lastIconRect.top + 'px';
+      appWindow.style.left = lastIconRect.left + 'px';
+
+      requestAnimationFrame(() => {
+        appWindow.style.transition = `all ${animationSpeed}ms ease-out`;
+        appWindow.style.width = phoneRect.width + 'px';
+        appWindow.style.height = phoneRect.height + 'px';
+        appWindow.style.top = phoneRect.top + 'px';
+        appWindow.style.left = phoneRect.left + 'px';
+      });
+
+      // gắn sự kiện cho settings
+      setTimeout(() => {
+        const speedSel = document.getElementById('speedSelect');
+        const colorSel = document.getElementById('colorSelect');
+        speedSel.value = animationSpeed;
+        speedSel.addEventListener('change', e => {
+          animationSpeed = parseInt(e.target.value);
+        });
+
+        colorSel.addEventListener('change', e => {
+          if (e.target.value === "grayscale") {
+            screen.classList.add('grayscale');
+          } else {
+            screen.classList.remove('grayscale');
+          }
+        });
+      }, 50);
+    }
+
+    function closeApp() {
+      if (!lastIconRect) return;
+
+      appWindow.style.transition = `all ${animationSpeed}ms ease-in`;
+      appWindow.style.width = lastIconRect.width + 'px';
+      appWindow.style.height = lastIconRect.height + 'px';
+      appWindow.style.top = lastIconRect.top + 'px';
+      appWindow.style.left = lastIconRect.left + 'px';
+
+      setTimeout(() => {
+        appWindow.classList.remove('open');
+        appWindow.style.opacity = '0';
+        appWindow.innerHTML = '';
+      }, animationSpeed);
+    }
+
+    icons.forEach(icon => {
+      icon.addEventListener('click', () => openApp(icon));
+    });
+
+    appWindow.addEventListener('click', closeApp);
+  </script>
+</body>
+</html>
+
